@@ -129,7 +129,7 @@ def get_agent_pos():
 
 
 def get_num_possible_actions():
-	return num_possible_moves
+	return num_possible_moves[0][1]
 
 def print_world():
     print "\nWORLD\n"
