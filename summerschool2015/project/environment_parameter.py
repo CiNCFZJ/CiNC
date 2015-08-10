@@ -25,14 +25,14 @@ def set_environment(env = 0):
         end_pos = [{'x':0, 'y':0}, {'x':4, 'y':0}]
     
     elif env == 2: 
-        outcomes = [[ -1, 0, 0, 0, 0, 0, 1 ]]
+        outcomes = [[ 1, 0, 0, 0, 0, 0, -1 ]]
         start_pos = {'x':3, 'y':0}
         end_pos = [{'x':0, 'y':0}, {'x':6, 'y':0}]
     
     elif env == 3:
         outcomes = [[0., 0., 0.]]
-        start_pos = {'x':0, 'y':0}
-        end_pos = []
+        start_pos = {'x':1, 'y':0}
+        end_pos = [{'x':0, 'y':0}, {'x':2, 'y':0}]
     
     elif env == 4:
         outcomes = [[.5, 0., 0., .0, 1.]]
@@ -46,7 +46,7 @@ def set_environment(env = 0):
     
     elif env == 6: 
         outcomes = [[  0,    0 ],
-                    [  -1,    1.]]
+                    [  0,    1.]]
         start_pos = {'x':0, 'y':0}
         end_pos = [{'x':1, 'y':1}]
     
