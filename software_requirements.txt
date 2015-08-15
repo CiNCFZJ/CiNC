@@ -1,0 +1,5 @@
+git
+build-essential autoconf automake libtool libltdl7-dev libreadline6-dev libncurses5-dev libgsl0-dev python-all-dev python-numpy python-scipy python-matplotlib ipython openmpi-bin libopenmpi-dev cython ipython-notebook python-mpi4py python-pygame
+nest
+
+stellar-game-engine (SGE v0.91) http://stellarengine.nongnu.org/download.html
