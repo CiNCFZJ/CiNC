@@ -91,6 +91,7 @@ def move(action):
     
     if action_queue.empty():
     	action_lock.acquire()
+        print direction
     	action_queue.put(direction)
     	action_lock.release()
     	

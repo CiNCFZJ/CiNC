@@ -1,7 +1,7 @@
 import Queue
 import threading
 import time
-from pong import pong
+from pong import pong_continious as pong
 import numpy
 import sys
 
@@ -50,11 +50,7 @@ if rank == size-1:
 num_possible_moves = 5
 in_end_pos = False
 params = { 'screenSize':480, 'screenSizeY':640, 'plankSize':40, 'ballSize':10, 'timeStep':0.5 }
-contraints = { 'xMin' : params['plankSize']/2, 'xMax' : params['screenSize'] - params['plankSize']/2, 
-    'yMin' : params['ballSize']/2, 'yMax' : params['screenSize'] - params['ballSize']/2,
-    'vMax' : 120, 'vMin': 80, 'angleMax': 0, 'angleMin': 0 }
-
-state = { 'diff':0, 'xPlank': 240, 'xBall': 240, 'yBall': 0, 'v':0, 'angle':0 }
+state = { 'diff':0, 'xPlank': 240, 'xBall': 240 }
 old_state = state.copy()
 last_outcomes = [0]
 
@@ -62,21 +58,22 @@ def get_num_possible_actions():
 	return num_possible_moves
 
 
-def getState():
-	global state
-	return state
+def moveLeft():
+    return -30
 
-def move_up():
-	return 
-
-def move_down():
-	return -1
+def moveLeftLong():
+    return -50
 
 def stay():
-	return 0
+    return 0
 
-def get_possible_actions():
-	return [move_up, stay, move_down]
+def moveRight():
+    return 30
+
+def moveRightLong():
+    return 50
+
+actionsAvailable = [moveLeftLong, moveLeft, stay, moveRight, moveRightLong]
 	
 def move(action):
     global num_reward, num_punishment, state
@@ -97,11 +94,12 @@ def move(action):
     outcome = 0
     state_lock.acquire()
     if not state_queue.empty():
-    	ball_x = state_queue.get()
-    	ball_y = min(world_dim['y']-1, int(state_queue.get()/(480 / world_dim['y'])))
-    	paddle = min(world_dim['x']-1, int(state_queue.get()/(480 / world_dim['x'])))
+    	ball = state_queue.get()
+        print 'debug 1', ball
+        paddle = state_queue.get()
     
-    	state = {'y': ball_y, 'x': paddle}
+    	state = {'xBall': ball, 'xPlank': paddle, 'diff': 0.0}
+        state['diff'] = state['xBall'] - state['xPlank']
     
     state_lock.release()
     
@@ -116,24 +114,13 @@ def getState():
 	global state
 	state_lock.acquire()
 	if not state_queue.empty():
-		ball_x = state_queue.get()
-		ball_y = min(world_dim['y']-1, int(state_queue.get()/(480 / world_dim['y'])))
-		paddle = min(world_dim['x']-1, int(state_queue.get()/(480 / world_dim['x'])))
+		ball = state_queue.get()
+		paddle = state_queue.get()
 
-		state = {'y': ball_y, 'x': paddle}
+		state = {'xBall': ball, 'xPlank': paddle, 'diff': 0.0}
+        state['diff'] = state['xBall'] - state['xPlank']
 
 	state_lock.release()
 
 	return state
-
-
-def print_world():
-	pass
-def print_states_visited():
-	pass
-def save_states_visited():
-	pass
-
-def print_world_file():
-    pass
 
