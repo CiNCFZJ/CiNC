@@ -11,8 +11,9 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
 in_end_pos = False
-params = { 'screenSize':480, 'screenSizeY':640, 'plankSize':120, 'ballSize':10, 'timeStep':0.5 }
-contraints = { 'xMin' : params['plankSize']/2, 'xMax' : params['screenSize'] - params['plankSize']/2, 
+params = {'screenSize': 480, 'screenSizeY': 640, 'plankSize': 120, 'ballSize': 10, 'timeStep': 0.5}
+
+contraints = {'xMin': params['plankSize']/2, 'xMax': params['screenSize'] - params['plankSize']/2, 
     'yMin' : params['ballSize']/2, 'yMax' : params['screenSize'] - params['ballSize']/2,
     'vMax' : 120, 'vMin': 80, 'angleMax': 0, 'angleMin': 0 }
 
@@ -112,10 +113,4 @@ def init_new_trial():
     outcome = 0
     in_end_pos = False
     return [outcome, in_end_pos]
-
-def print_world_file():
-    pass
-    
-
-
 
