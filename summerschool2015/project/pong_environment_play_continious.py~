@@ -95,7 +95,6 @@ def move(action):
     state_lock.acquire()
     if not state_queue.empty():
     	ball = state_queue.get()
-        print 'debug 1', ball
         paddle = state_queue.get()
     
     	state = {'xBall': ball, 'xPlank': paddle, 'diff': 0.0}

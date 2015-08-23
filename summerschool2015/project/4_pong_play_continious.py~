@@ -142,7 +142,7 @@ while actions_executed < NUM_ITERATIONS:
             nest.Simulate(5)
             time.sleep(0.01)
         
-        last_action_time += 75
+        last_action_time += 60
         actions_executed += 1
     else:
         state = env.getState().copy()        

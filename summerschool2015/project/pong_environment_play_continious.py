@@ -73,7 +73,7 @@ def moveRight():
 def moveRightLong():
     return 50
 
-actionsAvailable = [moveLeftLong, moveLeft, stay, moveRight, moveRightLong]
+actionsAvailable = [moveLeft, stay, moveRight]
 	
 def move(action):
     global num_reward, num_punishment, state

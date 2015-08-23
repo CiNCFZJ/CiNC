@@ -121,7 +121,7 @@ while actions_executed < NUM_ITERATIONS:
         nest.SetStatus([sensors['middle']], {'rate':abs(diff_K2*1/(0.01 + state['diff']))})
         
         for t in range(10):
-            nest.Simulate(10)
+            nest.Simulate(4)
             time.sleep(0.01)
 
         max_rate = -1
@@ -139,10 +139,10 @@ while actions_executed < NUM_ITERATIONS:
         nest.SetStatus([sensors['middle']], {'rate':0.})
 
         for t in range(5):
-            nest.Simulate(10)
+            nest.Simulate(4)
             time.sleep(0.01)
         
-        last_action_time += 150
+        last_action_time += 60
         actions_executed += 1
     else:
         state = env.getState().copy()        

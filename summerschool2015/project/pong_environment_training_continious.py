@@ -45,7 +45,7 @@ def moveRight():
 def moveRightLong():
     state['xPlank'] -= 50
 
-actionsAvailable = [moveLeftLong, moveLeft, stay, moveRight, moveRightLong]
+actionsAvailable = [moveLeft, stay, moveRight]
 
 def checkValid():
     global state
@@ -92,7 +92,6 @@ def move(action):
         #print 'isend'
         print state
         in_end_pos = True
-        outcome *= 1.5
         iteration += 1
     return [state, outcome, in_end_pos]
 
