@@ -30,20 +30,14 @@ def newState():
     state['xBall'] = newX
     state['diff'] = state['xBall'] - state['xPlank']
 
-def moveLeft():
-    state['xPlank'] += 30
+def moveLeft(x):
+    state['xPlank'] += x
 
-def moveLeftLong():
-    state['xPlank'] += 50
-
-def stay():
+def stay(x):
     pass
 
-def moveRight():
-    state['xPlank'] -= 30
-
-def moveRightLong():
-    state['xPlank'] -= 50
+def moveRight(x):
+    state['xPlank'] -= x
 
 actionsAvailable = [moveLeft, stay, moveRight]
 
@@ -80,17 +74,15 @@ def randomBeam():
 global iteration
 iteration = 0
 
-def move(action): 
+def move(action, x): 
     global in_end_pos, iteration, state, old_state
     old_state = state.copy()
-    action()  
+    action(x)  
     checkValid()
     newState()
     outcome = calculateOutcome()
     in_end_pos = False
     if(checkEnd()):
-        #print 'isend'
-        print state
         in_end_pos = True
         iteration += 1
     return [state, outcome, in_end_pos]
@@ -100,14 +92,15 @@ def calculateOutcome():
 
     diffStates = (abs(old_state['xBall'] - old_state['xPlank']))-(abs(state['xBall'] - state['xPlank'])) #will be positive for a right moves (relative distance getting smaller) or negative for opposite case
     if(diffStates == 0 and abs(state['xBall'] - state['xPlank']) < params['plankSize']/2): #stays on right place
-        return 50
+        return 10
     elif (diffStates == 0): # stays on a wrong place
-        return -30
-    else:
-        return diffStates
+        return -10
+    elif (diffStates > 0): # moves right direction
+        return 10
+    else: # move in wrong direction
+        return -10
 
 def checkEnd():
-    #print 'end'
     return state['yBall'] > params['screenSizeY'] - 10
 
 def getState():
