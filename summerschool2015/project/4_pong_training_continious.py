@@ -1,3 +1,13 @@
+# CONTINUOUS SENSORS AND ACTIONS MODEL
+# Difference signal - it is an actual yPaddle - yBall value
+# Depends on it, left or right p.generators activated proportionally
+# They are connected to the pool of sensor neurons with lineary changed weights
+# Left and right action pools are connected with the all sensor neurons
+# Also stay action is connected to static noise generator as a threshold value
+# Action with a greater fire rate is selected. Also fire rate is used as movement value for continuous action
+# After movement, outcome is calculated. Positive for a moves which keeps paddle on one line with a ball
+# And negative for a opposite. Depend on outcome weights between actual action and fired neurons changed
+
 import nest
 import nest.raster_plot as rplt
 import numpy as np
