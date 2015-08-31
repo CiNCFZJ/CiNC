@@ -16,6 +16,9 @@ import sge
 import Queue
 import threading
 import numpy.random as random
+import numpy as np
+import serial
+import matplotlib.pyplot as plt
 
 STATE_DIMENSIONS = 4 
 
@@ -120,7 +123,16 @@ class ComputerPlayer(sge.StellarClass):
 
 
 class Player(sge.StellarClass):
+    serial_port = None
+    max_contraction = 35
+    min_contraction = 5 
+    min_velocity = -1
+    max_velocity = 1
+    iteration = 0
+    old_cont = 0
+    derivative = 0
 
+    
     def __init__(self, player=1):
         self.up_key = "up"
         self.down_key = "down"
@@ -128,20 +140,50 @@ class Player(sge.StellarClass):
         glob.player1 = self
         self.hit_direction = 1
         y = sge.game.height / 2
+
+        self.serial_port = serial.Serial("/dev/ttyACM3", 115200) 
+        for i in range(100):
+            print self.serial_port.readline()
         super(Player, self).__init__(x, y, 0, sprite="paddle")
 
     def event_step(self, time_passed, delta_mult):
-		# Movement
-		key_motion = (sge.get_key_pressed(self.down_key) -
-		              sge.get_key_pressed(self.up_key))
-		
-		self.yvelocity = key_motion * PADDLE_SPEED
-		
-		# Keep the paddle inside the window
-		if self.bbox_top < 0:
-		    self.bbox_top = 0
-		elif self.bbox_bottom > sge.game.height:
-		    self.bbox_bottom = sge.game.height
+        self.iteration += 1
+        muscle_contraction = self.old_cont
+        if self.iteration % 4 == 0:
+            muscle_contraction = float(self.serial_port.readline().strip())
+            self.derivative = self.old_cont - muscle_contraction
+            self.old_cont = muscle_contraction
+        print muscle_contraction, self.derivative
+        #muscle_contraction = np.sin(self.iteration * time_passed)
+        print delta_mult, time_passed, muscle_contraction
+        
+        #self.min_contraction = max(1., self.min_contraction)
+        #self.min_contraction *= 1.001
+        #self.max_contraction *= 0.9999
+        #
+        #if muscle_contraction < self.min_contraction:
+        #    self.min_contraction = muscle_contraction
+        #if muscle_contraction > self.max_contraction:
+        #    self.max_contraction = muscle_contraction
+        
+        
+        velocity = self.min_velocity + (self.max_velocity - self.min_velocity) * ((muscle_contraction - self.min_contraction) / (self.max_contraction - self.min_contraction)) 
+        print self.min_contraction, self.max_contraction, velocity 
+        # Movement
+        #key_motion = (sge.get_key_pressed(self.down_key) -
+        #              sge.get_key_pressed(self.up_key))
+        
+        #self.yvelocity = key_motion * PADDLE_SPEED
+        self.yvelocity = -velocity * PADDLE_SPEED * 3.0 
+#        self.yvelocity = self.derivative * PADDLE_SPEED / 2.
+        #self.yvelocity = -velocity * PADDLE_SPEED * 2 * ( 1 +  abs(self.derivative / 7.)) 
+        #self.yvelocity = -velocity * PADDLE_SPEED * ( 1 +  abs(self.derivative / 7.)) 
+        
+        # Keep the paddle inside the window
+        if self.bbox_top < 0:
+            self.bbox_top = 0
+        elif self.bbox_bottom > sge.game.height:
+            self.bbox_bottom = sge.game.height
 
 		
 
@@ -197,45 +239,43 @@ class Ball(sge.StellarClass):
     	self.xvelocity = BALL_START_SPEED
     	self.yvelocity = 0
 
-
-
 def main( action_lock, action_queue, state_lock, state_queue): 
-	# Create Game object
-	Game(640, 480, fps=120)
-	
-	# Load sprites
-	paddle_sprite = sge.Sprite(ID="paddle", width=8, height=120, origin_x=4,
-	                           origin_y=60)
-	paddle_sprite.draw_rectangle(0, 0, paddle_sprite.width,
-	                             paddle_sprite.height, fill="white")
-
-	paddle_sprite_pc = sge.Sprite(ID="paddle_pc", width=8, height=paddle_size, origin_x=4,
-								origin_y=paddle_size/2.0)
-	paddle_sprite_pc.draw_rectangle(0, 0, paddle_sprite.width,
-	                             paddle_sprite.height, fill="white")
-
-
-	ball_sprite = sge.Sprite(ID="ball", width=24, height=24, origin_x=12,
-	                         origin_y=12)
-	ball_sprite.draw_rectangle(0, 0, ball_sprite.width, ball_sprite.height,
-	                           fill="white")
-	
-	# Load backgrounds
-	layers = (sge.BackgroundLayer("ball", sge.game.width / 2, 0, -10000,
-	                              xrepeat=False),)
-	background = sge.Background (layers, "black")
-	
-	# Create objects
-	Player(1)
-	ComputerPlayer(action_lock, action_queue, state_lock, state_queue)
-	glob.ball = Ball()
-	
-	objects = (glob.player1, glob.computer_player, glob.ball)
-	
-	# Create rooms
-	room1 = sge.Room(objects, background=background)
-	
-	sge.game.start()
+    # Create Game object
+    Game(640, 480, fps=120)
+    
+    # Load sprites
+    paddle_sprite = sge.Sprite(ID="paddle", width=8, height=120, origin_x=4,
+                               origin_y=60)
+    paddle_sprite.draw_rectangle(0, 0, paddle_sprite.width,
+                                 paddle_sprite.height, fill="white")
+    
+    paddle_sprite_pc = sge.Sprite(ID="paddle_pc", width=8, height=paddle_size, origin_x=4,
+    							origin_y=paddle_size/2.0)
+    paddle_sprite_pc.draw_rectangle(0, 0, paddle_sprite.width,
+                                 paddle_sprite.height, fill="white")
+    
+    
+    ball_sprite = sge.Sprite(ID="ball", width=24, height=24, origin_x=12,
+                             origin_y=12)
+    ball_sprite.draw_rectangle(0, 0, ball_sprite.width, ball_sprite.height,
+                               fill="white")
+    
+    # Load backgrounds
+    layers = (sge.BackgroundLayer("ball", sge.game.width / 2, 0, -10000,
+                                  xrepeat=False),)
+    background = sge.Background (layers, "black")
+    
+    # Create objects
+    Player(1)
+    ComputerPlayer(action_lock, action_queue, state_lock, state_queue)
+    glob.ball = Ball()
+    
+    objects = (glob.player1, glob.computer_player, glob.ball)
+    
+    # Create rooms
+    room1 = sge.Room(objects, background=background)
+    
+    sge.game.start()
 	
 
 if __name__ == '__main__':

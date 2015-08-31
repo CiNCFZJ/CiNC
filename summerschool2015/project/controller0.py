@@ -2,20 +2,11 @@ import nest
 import nest.raster_plot as rplt
 import numpy as np
 import matplotlib.pyplot as plt
-import pong_environment_play as env
+import mpi_environment as env
 from mpl_toolkits.mplot3d import Axes3D
 import os
 import json
 import time
-
-def plot(fig, ax, events):
-    plt.cla()
-    
-    l = len([t for t in events['times'] if t > (actions_executed - 5) * 60])
-    print l
-       
-    plt.scatter(events['times'][-l:], events['senders'][-l:])
-    plt.draw()
 
 def SaveNetworkToFile(filename, source, target):
 	if os.path.exists(filename):
@@ -33,9 +24,8 @@ def RestoreNetworkFromFile(filename):
 		f.close()
 		nest.DataConnect(status)
 
-#env.set_environment(9)
 
-NUM_ITERATIONS = 20
+NUM_ITERATIONS = 5000
 LEARNING_RATE = 0.5
 NUM_STATE_NEURONS = 20
 NUM_WTA_NEURONS = 50
@@ -47,7 +37,7 @@ nest.set_verbosity("M_FATAL")
 rank = nest.Rank()
 size = nest.NumProcesses() 
 seed = np.random.randint(0, 1000000)
-num_threads = 4
+num_threads = 1
 nest.SetKernelStatus({"local_num_threads": num_threads})
 nest.SetKernelStatus({"rng_seeds": range(seed+num_threads * size + 1, seed + 2 * (num_threads * size) + 1),
         		      "grng_seed": seed+size+num_threads,
@@ -132,76 +122,52 @@ def update_values(position, chosen_action, new_position, outcome):
 
 
 
-# Main loop
-#values_hist = [np.ravel(values.copy())]
-actions_executed = 0
-last_action_time = 0
-position = env.getState().copy()
-in_end_position = False
-
-# interactive plotting
-#fig, ax = plt.subplots()
-#plt.ion()
-
-while actions_executed < NUM_ITERATIONS:
-    if not in_end_position:
-        # stimulate new state
-        nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 0.})
-        position = env.getState().copy()
-        nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 1.})
-        
-        nest.SetStatus(wta_noise, {'rate': 3000.})
-        for t in range(8):
-            nest.Simulate(5)
-            time.sleep(0.01)
-
-        #plot(fig, ax, nest.GetStatus(sd_wta, keys='events')[0])
-
-        max_rate = -1
-        chosen_action = -1
-        for i in range(len(sd_actions)):
-            rate = len([e for e in nest.GetStatus([sd_actions[i]], keys='events')[0]['times'] if e > last_action_time]) # calc the "firerate" of each actor population
-            if rate > max_rate:
-                max_rate = rate # the population with the hightes rate wins
-                chosen_action = i
-
-        nest.SetStatus(stimulus, {'rate': 5000.})
-
-        possible_actions = env.get_possible_actions() 
-
-        new_position, outcome, in_end_position = env.move(possible_actions[chosen_action])
-
-        nest.SetStatus(wta_noise, {'rate': 0.})
-        for t in range(4):
-            nest.Simulate(5)
-            time.sleep(0.01)
-        
-              
-        last_action_time += 60
-        actions_executed += 1
-    else:
-        position = env.get_agent_pos().copy()        
-        _, in_end_position = env.init_new_trial()
-        nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 0.})
-
-rplt.from_device(sd_wta, title="WTA circuit")
-rplt.from_device(sd_states, title="states")
-rplt.show()
-       
-#fig = plt.figure()
-
-#plt.xlabel("# action")
-#plt.ylabel("valence")
-#plt.title("valence of each action")
-#ax = fig.add_subplot(111, projection='3d')
-
-#x, y = np.meshgrid(range(world_dim['x'] * num_actions), range(NUM_ITERATIONS))
-#x = x.flatten()
-#y = y.flatten()
-
-#ax.bar3d(x, y, np.zeros(len(x)), np.ones(len(x)) * 0.5, np.ones(len(x)) * 0.5, np.ravel(values_hist))
-
-#plt.show()
-
+def run():
+    # Main loop
+    #values_hist = [np.ravel(values.copy())]
+    actions_executed = 0
+    last_action_time = 0
+    position = env.getState().copy()
+    in_end_position = False
+    
+    while actions_executed < NUM_ITERATIONS:
+        if not in_end_position:
+            # stimulate new state
+            nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 0.})
+            position = env.getState().copy()
+            nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 1.})
+            
+            nest.SetStatus(wta_noise, {'rate': 3000.})
+            for t in range(8):
+                nest.Simulate(5)
+                time.sleep(0.01)
+    
+            max_rate = -1
+            chosen_action = -1
+            for i in range(len(sd_actions)):
+                rate = len([e for e in nest.GetStatus([sd_actions[i]], keys='events')[0]['times'] if e > last_action_time]) # calc the "firerate" of each actor population
+                if rate > max_rate:
+                    max_rate = rate # the population with the hightes rate wins
+                    chosen_action = i
+    
+            nest.SetStatus(stimulus, {'rate': 5000.})
+    
+            possible_actions = env.get_possible_actions() 
+    
+            new_position, outcome, in_end_position = env.move(possible_actions[chosen_action])
+    
+            nest.SetStatus(wta_noise, {'rate': 0.})
+            for t in range(4):
+                nest.Simulate(5)
+                time.sleep(0.01)
+            
+                  
+            last_action_time += 60
+            actions_executed += 1
+        else:
+            position = env.get_agent_pos().copy()        
+            _, in_end_position = env.init_new_trial()
+            nest.SetStatus(nest.GetConnections(stimulus, states[position['x']][position['y']]), {'weight': 0.})
+      
 
 

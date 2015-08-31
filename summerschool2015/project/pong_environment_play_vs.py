@@ -1,12 +1,9 @@
 import Queue
 import threading
 import time
-from pong import pong
+from pong import pong_vs as pong
 import numpy
 import sys
-
-#sys.path.append("/home/philipp/opt/mpi4py/lib/python/")
-#sys.path.append("/users/weidel/opt/mpi4py/lib64/python/")
 
 from mpi4py import MPI
 from mpi4py.MPI import ANY_SOURCE
@@ -16,38 +13,41 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 class PongGame(threading.Thread):
-	action_lock = None
-	action_queue = None
 	state_lock = None
 	state_queue = None
+	action_lock0 = None
+	action_queue0 = None
+	action_lock1 = None
+	action_queue1 = None
 
-	def __init__(self, action_lock, action_queue, state_lock, state_queue ):
-		self.action_lock = action_lock
-		self.action_queue = action_queue
+	def __init__(self, action_lock0, action_queue0, action_lock1, action_queue1, state_lock, state_queue ):
+		self.action_lock0 = action_lock0
+		self.action_queue0 = action_queue0
+		self.action_lock1 = action_lock1
+		self.action_queue1 = action_queue1
 		self.state_lock = state_lock
 		self.state_queue = state_queue
 
 		threading.Thread.__init__(self)
 
-
 	def run(self):
-		pong.main(self.action_lock, self.action_queue, self.state_lock, self.state_queue)
+		pong.main(self.action_lock0, self.action_queue0, self.action_lock1, self.action_queue1, self.state_lock, self.state_queue)
 
 if rank == size-1:
-	action_queue = Queue.Queue(1)
-	action_lock = threading.Lock()
+	action_queue0 = Queue.Queue(1)
+	action_lock0 = threading.Lock()
+	action_queue1 = Queue.Queue(1)
+	action_lock1 = threading.Lock()
 	
 	state_queue = Queue.Queue(3 * 1024)
 	state_lock = threading.Lock()
 	
-	
-	pong_thread = PongGame( action_lock, action_queue, state_lock, state_queue )
-	
+	pong_thread = PongGame(  action_lock0, action_queue0, action_lock1, action_queue1, state_lock, state_queue )
 	pong_thread.start()
 	
 	print "Pong started"
 
-world_dim = {'y': 4, 'x': 4}
+world_dim = {'y':4, 'x': 4}
 
 num_possible_moves = numpy.zeros(world_dim['y'] * world_dim['x'], int)
 num_possible_moves = numpy.reshape(num_possible_moves, [world_dim['y'], world_dim['x']])

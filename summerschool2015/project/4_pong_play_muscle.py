@@ -2,7 +2,7 @@ import nest
 import nest.raster_plot as rplt
 import numpy as np
 import matplotlib.pyplot as plt
-import pong_environment_play as env
+import pong_environment_play_muscle as env
 from mpl_toolkits.mplot3d import Axes3D
 import os
 import json
@@ -35,7 +35,7 @@ def RestoreNetworkFromFile(filename):
 
 #env.set_environment(9)
 
-NUM_ITERATIONS = 20
+NUM_ITERATIONS = 20000000
 LEARNING_RATE = 0.5
 NUM_STATE_NEURONS = 20
 NUM_WTA_NEURONS = 50
@@ -140,8 +140,8 @@ position = env.getState().copy()
 in_end_position = False
 
 # interactive plotting
-#fig, ax = plt.subplots()
-#plt.ion()
+fig, ax = plt.subplots()
+plt.ion()
 
 while actions_executed < NUM_ITERATIONS:
     if not in_end_position:
@@ -155,7 +155,7 @@ while actions_executed < NUM_ITERATIONS:
             nest.Simulate(5)
             time.sleep(0.01)
 
-        #plot(fig, ax, nest.GetStatus(sd_wta, keys='events')[0])
+        plot(fig, ax, nest.GetStatus(sd_wta, keys='events')[0])
 
         max_rate = -1
         chosen_action = -1

@@ -10,7 +10,7 @@ from mpi4py.MPI import ANY_SOURCE
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 
-world_dim = {'y':4, 'x': 4}
+world_dim = {'y': 4, 'x': 4}
 
 num_possible_moves = numpy.zeros(world_dim['y'] * world_dim['x'], int)
 num_possible_moves = numpy.reshape(num_possible_moves, [world_dim['y'], world_dim['x']])
@@ -89,8 +89,9 @@ def move(action):
     
     #outcome = (abs(state['y'] - old_state['x']) - abs(state['y'] - state['x'] ) - 1) * 0.5
     outcome = -.2
+    #outcome = 0.
     
-    if (state['x'] == state['y'] and old_state['x'] == state['y']):
+    if (state['x'] == state['y']) and (old_state['x'] == state['y']):
         in_end_pos = True
     	outcome = 1
         iteration += 1

@@ -1,7 +1,8 @@
 import Queue
 import threading
 import time
-from pong import pong
+from pong import pong_muscle as pong
+import matplotlib.pyplot as plt
 import numpy
 import sys
 
@@ -95,7 +96,7 @@ def move(action):
     global num_reward, num_punishment, state
     
     direction = action() 
-    print state, direction
+    #print state, direction
     	
     if not action_queue.empty():
     	action_lock.acquire()

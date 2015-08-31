@@ -17,7 +17,7 @@ import Queue
 import threading
 import numpy.random as random
 
-STATE_DIMENSIONS = 4 
+STATE_DIMENSIONS = 4
 
 PADDLE_SPEED = 8
 COMPUTER_PADDLE_SPEED = 480 / STATE_DIMENSIONS 
@@ -36,6 +36,7 @@ class glob:
 
     player1 = None
     computer_player = None
+    computer_player2 = None
     ball = None
     hud_sprite = None
     bounce_sound = None
@@ -87,7 +88,7 @@ class ComputerPlayer(sge.StellarClass):
         self.action_queue = action_queue
         self.state_lock = state_lock 
         self.state_queue = state_queue
-        super(ComputerPlayer, self).__init__(x,y, sprite="paddle_pc")
+        super(ComputerPlayer, self).__init__(x,y, sprite="paddle")
     
     def event_step(self, time_passed, delta_mult):
         self.state_lock.acquire()
@@ -96,9 +97,9 @@ class ComputerPlayer(sge.StellarClass):
              self.state_queue.get()
              
         # put new state
-        self.state_queue.put(glob.ball.x)
         self.state_queue.put(glob.ball.y)
         self.state_queue.put(glob.computer_player.y)
+        self.state_queue.put(glob.computer_player2.y)
         self.state_lock.release()
 
         if not self.action_queue.empty():
@@ -106,17 +107,45 @@ class ComputerPlayer(sge.StellarClass):
             move_direction = self.action_queue.get()
             self.action_lock.release()
             self.yvelocity = move_direction * COMPUTER_PADDLE_SPEED
-         
         else:
-        	self.yvelocity = 0
-        
-        
+            self.yvelocity = 0
         
         # Keep the paddle inside the window
         if self.bbox_top < 0:
             self.bbox_top = 0
         elif self.bbox_bottom > sge.game.height:
         	self.bbox_bottom = sge.game.height
+
+
+class ComputerPlayer2(sge.StellarClass):
+    action_lock = None
+    action_queue = None
+    
+    def __init__(self, action_lock, action_queue):
+        x = 32
+        y = 0# sge.game.height / 2
+        self.hit_direction = 1
+        glob.computer_player2 = self
+        self.action_lock = action_lock
+        self.action_queue = action_queue
+        super(ComputerPlayer2, self).__init__(x,y, sprite="paddle")
+    
+    def event_step(self, time_passed, delta_mult):
+            
+        if not self.action_queue.empty():
+            self.action_lock.acquire()
+            move_direction = self.action_queue.get()
+            self.action_lock.release()
+            self.yvelocity = move_direction * COMPUTER_PADDLE_SPEED
+        else:
+        	self.yvelocity = 0
+        
+        # Keep the paddle inside the window
+        if self.bbox_top < 0:
+            self.bbox_top = 0
+        elif self.bbox_bottom > sge.game.height:
+        	self.bbox_bottom = sge.game.height
+
 
 
 class Player(sge.StellarClass):
@@ -175,15 +204,15 @@ class Ball(sge.StellarClass):
             
     
     def event_collision(self, other):
-    	if isinstance(other, Player) or isinstance(other, ComputerPlayer):
-    		if other.hit_direction == 1:
-    			self.bbox_left = other.bbox_right + 1
-    			self.xvelocity = min(abs(self.xvelocity) + BALL_ACCELERATION, BALL_MAX_SPEED)
-    		else:
-    			self.bbox_right = other.bbox_left - 1
-    			self.xvelocity = max(-abs(self.xvelocity) - BALL_ACCELERATION, -BALL_MAX_SPEED)
+    	if isinstance(other, ComputerPlayer2) or isinstance(other, ComputerPlayer):
+    	    if other.hit_direction == 1:
+    	    	self.bbox_left = other.bbox_right + 1
+    	    	self.xvelocity = min(abs(self.xvelocity) + BALL_ACCELERATION, BALL_MAX_SPEED)
+    	    else:
+    	    	self.bbox_right = other.bbox_left - 1
+    	    	self.xvelocity = max(-abs(self.xvelocity) - BALL_ACCELERATION, -BALL_MAX_SPEED)
     
-    		self.yvelocity += (self.y - other.y) * (PADDLE_VERTICAL_FORCE + 0.01)
+    	    self.yvelocity += (self.y - other.y) * (PADDLE_VERTICAL_FORCE + 0.01)
        
     
     
@@ -191,7 +220,7 @@ class Ball(sge.StellarClass):
     	self.x = 50 
     	self.y = random.randint(40, 440)
     	
-    	# Next round
+        # Next round
     	#self.xvelocity = BALL_START_SPEED * direction + (random.rand()-0.3) * (8.0 * random.rand())
     	#self.yvelocity = random.rand() * 2 - 1 
     	self.xvelocity = BALL_START_SPEED
@@ -199,12 +228,12 @@ class Ball(sge.StellarClass):
 
 
 
-def main( action_lock, action_queue, state_lock, state_queue): 
+def main(  action_lock0, action_queue0, action_lock1, action_queue1, state_lock, state_queue): 
 	# Create Game object
 	Game(640, 480, fps=120)
 	
 	# Load sprites
-	paddle_sprite = sge.Sprite(ID="paddle", width=8, height=120, origin_x=4,
+    	paddle_sprite = sge.Sprite(ID="paddle", width=8, height=120, origin_x=4,
 	                           origin_y=60)
 	paddle_sprite.draw_rectangle(0, 0, paddle_sprite.width,
 	                             paddle_sprite.height, fill="white")
@@ -221,21 +250,20 @@ def main( action_lock, action_queue, state_lock, state_queue):
 	                           fill="white")
 	
 	# Load backgrounds
-	layers = (sge.BackgroundLayer("ball", sge.game.width / 2, 0, -10000,
-	                              xrepeat=False),)
+	layers = (sge.BackgroundLayer("ball", sge.game.width / 2, 0, -10000, xrepeat=False),)
 	background = sge.Background (layers, "black")
 	
 	# Create objects
-	Player(1)
-	ComputerPlayer(action_lock, action_queue, state_lock, state_queue)
+	ComputerPlayer(action_lock0, action_queue0, state_lock, state_queue)
+	ComputerPlayer2(action_lock1, action_queue1)
 	glob.ball = Ball()
 	
-	objects = (glob.player1, glob.computer_player, glob.ball)
+	objects = (glob.computer_player2, glob.computer_player, glob.ball)
 	
 	# Create rooms
 	room1 = sge.Room(objects, background=background)
 	
-	sge.game.start()
+        sge.game.start()
 	
 
 if __name__ == '__main__':
