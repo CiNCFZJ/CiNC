@@ -54,33 +54,16 @@ num_possible_moves = numpy.reshape(num_possible_moves, [world_dim['y'], world_di
 
 
 num_possible_moves += 3
-
 def get_num_possible_actions():
 	return num_possible_moves
 
-global num_reward, num_punishment, state
-num_reward = 1
-num_punishment = 1
 
-state = {'y': 1, 'x':0}
-last_outcomes = [0]
-
-def getWorldDim():
-	return [world_dim['y'], world_dim['x']] 
-
-def get_world_dimensions():
-	return world_dim 
-
-
-def get_agent_pos():
+def getState():
 	global state
 	return state
 
-def getActionDim():
-	return 3 
-
 def move_up():
-	return 1
+	return 
 
 def move_down():
 	return -1
